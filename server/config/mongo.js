@@ -2,16 +2,18 @@ import mongoose from 'mongoose'
 import {GridFsStorage} from 'multer-gridfs-storage'
 import multer from 'multer';
 import crypto from 'crypto';
-import path from 'path';
-const CONNECTION_URL = `mongodb+srv://mustafa:1234@cluster0.erpl3qr.mongodb.net/?retryWrites=true&w=majority`
+import dotenv from 'dotenv';
 
-mongoose.connect(CONNECTION_URL, {
+dotenv.config({ path: "./config.env" });
+const url = process.env.MONGO_URL
+
+mongoose.connect(url, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
 
 const storage = new GridFsStorage({
-  url: CONNECTION_URL,
+  url: url,
   file: (req, file) => {
       return new Promise((resolve, reject) => {
           crypto.randomBytes(16, (err, buf) => {
