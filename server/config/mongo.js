@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: "./config.env" });
-const url = process.env.MONGO_URL
+const url = process.env.MONGODB_URI
 
 mongoose.connect(url, {
   useNewUrlParser: true,
