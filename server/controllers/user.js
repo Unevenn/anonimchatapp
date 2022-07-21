@@ -123,7 +123,7 @@ export default {
           error:"you must select a file."
         });
       }
-      const image = `http://localhost:3000/file/${req.file.originalname}`;
+      const image = `file/${req.file.originalname}`;
       const userId = req.userId;
       console.log(image);
       const user = await UserModel.updateUserPhoto( userId,image);
