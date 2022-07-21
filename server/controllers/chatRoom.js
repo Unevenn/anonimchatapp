@@ -197,7 +197,12 @@ export default {
 
       const currentLoggedUser = req.userId;
       const result = await ChatMessageModel.markMessageRead(roomId, currentLoggedUser);
-      global.io.sockets.in(roomId).emit('read message', { roomId,currentLoggedUser});
+      try {
+        global.io.sockets.in(roomId).emit('read message', { roomId,currentLoggedUser});
+      } catch (error) {
+        print(error);
+      }
+
       return res.status(200).json({ success: true, data: result });
     } catch (error) {
       console.log(error);

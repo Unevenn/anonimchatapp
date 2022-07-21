@@ -1,5 +1,7 @@
 import UserModel from '../models/User.js';
 import ChatMessageModel from '../models/ChatMessage.js';
+import jwt from 'jsonwebtoken';
+const SECRET_KEY = 'some-secret-key';
 let users = []; 
 class WebSockets {
 
@@ -29,19 +31,22 @@ class WebSockets {
     });
 
     client.on("checklastseen", async (userId)  => {
-      console.log(users);
+      console.log(userId);
      var onlineMi = users.map((user) => user.userId === userId).includes(true);
+     console.log(users);
+     console.log(users.map((user) => user.userId === userId));
+     console.log(onlineMi);
      try {
       if(onlineMi){    
         var data = {"userId": userId, 'status':"online"};
         client.join(userId);
-        global.io.sockets.in(client.id).emit('getlastseen', { data});
+        global.io.sockets.to(client.id).emit('getlastseen', { data });
       }else{
         // son gorulmeyi cek ve gonder
        client.join(userId);
        const user =  await UserModel.getUserLastSeen(userId);
         var data = {"userId": userId, 'status':user.lastSeen};
-        global.io.sockets.in(client.id).emit('getlastseen', { data });
+        global.io.sockets.to(client.id).emit('getlastseen', { data });
       }
      } catch (error) {
       console.log(error);
@@ -59,7 +64,7 @@ class WebSockets {
         client.in(userId).emit('getlastseen', { data });
          UserModel.updateUserLastSeen(userId);
       }
-     });
+    });
 
      client.on("typing", (data) => {
       // this.subscribeOtherUser(room, otherUserId);
@@ -68,9 +73,12 @@ class WebSockets {
       // global.io.sockets.in(room).emit('new message', { message: 'sad' });
     });
     // subscribe person to chat & other user as well
-    client.on("subscribe", (room, otherUserId = "") => {
+    client.on("subscribe", (data) => {
       // this.subscribeOtherUser(room, otherUserId);
-      client.join(room);
+      var chatroomIds = data['chatroomIds']
+      console.log('chatroomIds')
+      console.log(chatroomIds)
+      client.join(chatroomIds);
       // global.io.sockets.in(room).emit('new message', { message: 'sad' });
     });
     // mute a chat room
