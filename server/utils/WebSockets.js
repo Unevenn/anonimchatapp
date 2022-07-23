@@ -1,8 +1,12 @@
 import UserModel from '../models/User.js';
 import ChatMessageModel from '../models/ChatMessage.js';
 import jwt from 'jsonwebtoken';
+import FCM  from 'fcm-node';
+
 const SECRET_KEY = 'some-secret-key';
+var fbServerKey = 'AAAA9dwQnKo:APA91bEoo8bVKUbqj9TzcFvhN4Ek0Te66pnHiFd9KOXlvNlaEDeIxHd52ZnNRIcfawSm3jSxyqLs2VcnQLd9bMGzazQxi6eYP71B5GthFTwizA8k4oqqYegHODK5HX_lpmivOit4DzZo';
 let users = []; 
+
 class WebSockets {
 
  
@@ -28,6 +32,38 @@ class WebSockets {
           socketId: client.id,
           userId: userId,
         });
+    });
+
+    client.on("send message", (post,authToken,pushToken) => { 
+      var messageText = post['message'];
+      var id = post['_id'];
+      var roomId = post['chatRoomId'];
+      try {
+        const decoded = jwt.verify(authToken, SECRET_KEY);
+        var currentLoggedUser = decoded.userId;
+        post['createdAt'] = new Date().toISOString();
+        post['updatedAt'] = new Date().toISOString();
+        global.io.sockets.in(roomId).emit('new message', { message: post });
+        var fcm = new FCM(fbServerKey);
+        var message = {
+          to: pushToken,
+          data: { //you can send only notification or only data(or include both)
+            post,
+          }
+      };
+      fcm.send(message, function(err, response) {
+          if (err) {
+              console.log("Something has gone wrong!"+err);
+        console.log("RAhmeespponse:! "+response);
+          } else {
+              // showToast("Successfully sent with response");
+              console.log("Successfully sent with response: ", response);
+          }
+      });
+        ChatMessageModel.createPostInChatRoom(id,roomId, messageText, currentLoggedUser);
+      } catch (error) {
+       console.log(error)
+      }
     });
 
     client.on("checklastseen", async (userId)  => {
