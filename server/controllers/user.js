@@ -59,12 +59,13 @@ export default {
         checks: {
           name: { type: types.string },
           email:{ type: types.string },
+          pushToken:{ type: types.string },
           password: { type: types.string },
         }
       }));
-      const { name, email, password } = req.body;
+      const { name, email, password,pushToken } = req.body;
       let bcryptedPassword = Bcrypt.hashSync(password,10);
-      const user = await UserModel.createUser(name, email, bcryptedPassword);
+      const user = await UserModel.createUser(name, email, bcryptedPassword,pushToken);
       const payload = {
         userId: user._id,
         password: bcryptedPassword,
@@ -81,12 +82,13 @@ export default {
         payload: req.body,
         checks: {
           email:{ type: types.string },
+          pushToken:{ type: types.string },
           password: { type: types.string },
         }
       }));
       if (!validation.success) return res.status(400).json(validation);
   
-      const { email, password } = req.body;
+      const { email, password,pushToken } = req.body;
       const user =   await UserModel.getUserByEmail(email)
       if(!Bcrypt.compareSync(password,user.password)){
         return res.status(200).json({ success: false,error:"Wrong Password"});
@@ -96,8 +98,9 @@ export default {
           userId: user._id,
           password: bcryptedPassword,
         };   
+        await UserModel.updateUserPushToken(user._id,pushToken)
         const authToken = jwt.sign(payload, SECRET_KEY);
-        return res.status(200).json({ success: true,authToken,user});
+        return res.status(200).json({ success: true,authToken,user,});
       }
      
     } catch (error) {

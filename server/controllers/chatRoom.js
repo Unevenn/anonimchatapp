@@ -4,9 +4,7 @@ import makeValidation from '@withvoid/make-validation';
 import ChatRoomModel from '../models/ChatRoom.js';
 import ChatMessageModel from '../models/ChatMessage.js';
 import UserModel from '../models/User.js';
-import FCM  from 'fcm-node';
 
-var serverKey = 'AAAA9dwQnKo:APA91bEoo8bVKUbqj9TzcFvhN4Ek0Te66pnHiFd9KOXlvNlaEDeIxHd52ZnNRIcfawSm3jSxyqLs2VcnQLd9bMGzazQxi6eYP71B5GthFTwizA8k4oqqYegHODK5HX_lpmivOit4DzZo';
 export default {
   initiate: async (req, res) => {
     try {
@@ -33,7 +31,7 @@ export default {
   },
   postMessage: async (req, res) => {
     try {
-      const { roomId } = req.params;
+      const { roomId,pushToken } = req.params;
       const validation = makeValidation(types => ({
         payload: req.body,
         checks: {
@@ -45,31 +43,6 @@ export default {
       const currentLoggedUser = req.userId;
       const post = await ChatMessageModel.createPostInChatRoom(roomId, messageText, currentLoggedUser);
       global.io.sockets.in(roomId).emit('new message', { message: post });
-      var fcm = new FCM(serverKey);
-      var message = {
-        condition: "'" +roomId + "' in topics" ,
-
-        // notification: {
-        //     title: 'NotifcatioTestAPP',
-        //     body: '{"Message from node js app"}',
-        // },
-
-        data: { //you can send only notification or only data(or include both)
-          post,
-        }
-
-    };
-
-    fcm.send(message, function(err, response) {
-        if (err) {
-            console.log("Something has gone wrong!"+err);
-			console.log("Respponse:! "+response);
-        } else {
-            // showToast("Successfully sent with response");
-            console.log("Successfully sent with response: ", response);
-        }
-
-    });
       return res.status(200).json({ success: true, post });
     } catch (error) {
       return res.status(500).json({ success: false, error: error })

@@ -32,6 +32,10 @@ const userSchema = new mongoose.Schema(
     image:{
       type:String,
       default: ''
+    },
+    pushToken:{
+      type:String,
+      required:true,
     }
     
   }, 
@@ -46,9 +50,9 @@ const userSchema = new mongoose.Schema(
  * @param {String} lastName
  * @returns {Object} new user object created
  */
-userSchema.statics.createUser = async function (name, email, password) {
+userSchema.statics.createUser = async function (name, email, password,pushToken) {
   try {
-    const user = await this.create({ name, email, password});
+    const user = await this.create({ name, email, password,pushToken});
     return user;
   } catch (error) {
     throw error;
@@ -95,6 +99,21 @@ userSchema.statics.updateUserLastSeen = async function (userId) {
       {
         $set: {
           "lastSeen": Date.now()
+      },
+        },  
+   );
+    if (!user) throw (  'No user with this id found' );
+    return user.lastSeen;
+  } catch (error) {
+    throw error;
+  }
+}
+userSchema.statics.updateUserPushToken = async function (userId,pushToken) {
+  try {
+    const user = await this.updateOne({ _id: userId,},
+      {
+        $set: {
+          "pushToken":pushToken
       },
         },  
    );
