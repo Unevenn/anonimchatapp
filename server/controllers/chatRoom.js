@@ -35,13 +35,17 @@ export default {
       const validation = makeValidation(types => ({
         payload: req.body,
         checks: {
-          messageText: { type: types.string },
+          type:{type:types.string}
         }
       }));
       if (!validation.success) return res.status(400).json({ ...validation });
       var  messageText = req.body.messageText;
+      var  type = req.body.type;
+      if(req.file){
+        messageText = req.file.path;
+      }
       const currentLoggedUser = req.userId;
-      const post = await ChatMessageModel.createPostInChatRoom(roomId, messageText, currentLoggedUser);
+      const post = await ChatMessageModel.createPostInChatRoom("",roomId, messageText, currentLoggedUser,type);
       global.io.sockets.in(roomId).emit('new message', { message: post });
       return res.status(200).json({ success: true, post });
     } catch (error) {
@@ -65,6 +69,7 @@ export default {
       return res.status(500).json({ success: false, error: error })
     }
   },
+
   getConversationByRoomId: async (req, res) => {
     try {
       const { roomId } = req.params;
@@ -105,6 +110,24 @@ export default {
       return res.status(200).json({
         success: true,
         room
+      });
+    } catch (error) {
+      return res.status(500).json({ success: false, error });
+    }
+  },  getMessageById: async (req, res) => {
+    try {
+      const { messageId } = req.params;
+      const message = await ChatMessageModel.getMessageById(messageId)
+      if (!message) {
+        return res.status(400).json({
+          success: false,
+          message: 'No message found!',
+        })
+      }
+
+      return res.status(200).json({
+        success: true,
+        message
       });
     } catch (error) {
       return res.status(500).json({ success: false, error });

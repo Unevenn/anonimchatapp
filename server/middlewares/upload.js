@@ -1,26 +1,36 @@
 import multer from 'multer';
-import {GridFsStorage} from 'multer-gridfs-storage'
+import  fs  from 'fs';
 
-const CONNECTION_URL = `mongodb+srv://mustafa:1234@cluster0.mimzkbd.mongodb.net/?retryWrites=true&w=majority`
+//images to be stored in uploads
 
-const upload = new GridFsStorage({
-    url: CONNECTION_URL,
-    file: (req, file) => {
-        return new Promise((resolve, reject) => {
-            crypto.randomBytes(16, (err, buf) => {
-                if (err) {
-                    return reject(err);
-                }
-                const filename = buf.toString('hex') + path.extname(file.originalname);
-                req.filename = filename;
-                const fileInfo = {
-                    filename: filename,
-                    bucketName: 'photos'
-                };
-                resolve(fileInfo);
-            });
-        });
+
+
+var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        var dir = 'uploads/' + req.userId
+        if (!fs.existsSync(dir)){
+            fs.mkdirSync(dir);
+            cb(null, dir)
+        }else{
+            cb(null,dir)
+        }
+    
+
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.originalname)
     }
-});
-
-export default multer({ upload });
+})
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg' || file.mimetype === 'image/png') {
+        cb(null, true);
+    }
+    else {
+        cb(null, false);
+    }
+}
+const upload = multer({
+    storage: storage,fileFilter:fileFilter
+  });
+  
+export default upload;

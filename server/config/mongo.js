@@ -1,7 +1,4 @@
 import mongoose from 'mongoose'
-import {GridFsStorage} from 'multer-gridfs-storage'
-import multer from 'multer';
-import crypto from 'crypto';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: "./config.env" });
@@ -12,26 +9,7 @@ mongoose.connect(url, {
   useUnifiedTopology: true
 })
 
-const storage = new GridFsStorage({
-  url: url,
-  file: (req, file) => {
-      return new Promise((resolve, reject) => {
-          crypto.randomBytes(16, (err, buf) => {
-              if (err) {
-                  return reject(err);
-              }
-              const fileInfo = {
-                  filename: file.originalname,
-                  bucketName: 'uploads'
-              };
-              resolve(fileInfo);
-              console.log(fileInfo)
-          });
-      });
-  }
-});
 
-const upload = multer({ storage });
 
 mongoose.connection.on('connected', () => {
   console.log('Mongo has connected succesfully')
@@ -47,4 +25,4 @@ mongoose.connection.on('disconnected', () => {
   console.log('Mongo connection is disconnected')
 })
 
-export default upload;
+export default url;

@@ -1,15 +1,16 @@
 import express from 'express';
 // controllers
 import chatRoom from '../controllers/chatRoom.js';
-
+import upload from "../middlewares/upload.js";
 const router = express.Router();
 
 router
   .get('/', chatRoom.getRecentConversation)
   .get('/:roomId', chatRoom.getConversationByRoomId)
   .post('/initiate', chatRoom.initiate)
-  .post('/:roomId/message', chatRoom.postMessage)
+  .post('/:roomId/message',upload.single('file'), chatRoom.postMessage)
   .get('/:roomId/getMessages', chatRoom.getMessagesByRoomId)
+  .get('/:messageId/getMessageById', chatRoom.getMessageById)
   .get('/:roomId/getRoom', chatRoom.getChatRoomById)
   .get('/:roomId/getUnDeliveredMessages', chatRoom.getUndeliveredMessagesByRoomId)
   .put('/:roomId/mark-read', chatRoom.markConversationReadByRoomId)

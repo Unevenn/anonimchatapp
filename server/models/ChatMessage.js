@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 const MESSAGE_TYPES = {
   TYPE_TEXT: "text",
+  TYPE_IMAGE: "image",
 };
 
 const readByRecipientSchema = new mongoose.Schema(
@@ -48,26 +49,44 @@ const chatMessageSchema = new mongoose.Schema(
  * @param {Object} message - message you want to post in the chat room
  * @param {String} postedByUser - user who is posting the message
  */
-chatMessageSchema.statics.createPostInChatRoom = async function (_id,chatRoomId, message, postedByUser,) {
+chatMessageSchema.statics.createPostInChatRoom = async function (_id, chatRoomId, message, postedByUser, type) {
   try {
-    const post = await this.create({
-      _id,
-      chatRoomId,
-      message,
-      postedByUser,
-      readByRecipients: []
-    });
-    return post
+    console.log("post")
+    if(_id ==''){
+
+      const post = await this.create({
+        chatRoomId,
+        message,
+        postedByUser,
+        type,
+        readByRecipients: []
+      });
+
+      return post
+    }else{
+      const post = await this.create({
+        _id,
+        chatRoomId,
+        message,
+        postedByUser,
+        type,
+        readByRecipients: []
+      });
+      return post
+    }
+   
+
   } catch (error) {
     throw error;
   }
 }
-chatMessageSchema.statics.createPostInChatRoomWithDelivered = async function (chatRoomId, message, postedByUser,) {
+chatMessageSchema.statics.createPostInChatRoomWithDelivered = async function (chatRoomId, message, postedByUser, type) {
   try {
     const post = await this.create({
       chatRoomId,
       message,
       postedByUser,
+      type,
       readByRecipients: []
     });
     return post
@@ -116,9 +135,18 @@ chatMessageSchema.statics.getMessagesByRoomId = async function (chatRoomId, opti
     throw error;
   }
 }
-chatMessageSchema.statics.getUndeliveredMessagesByRoomId = async function (chatRoomId,userId, options = {}) {
+chatMessageSchema.statics.getMessageById = async function (_id) {
   try {
- return  this.find({'readByRecipients.readByUserId': {$nin: ['fd8445e7b3cc4e3098b29d476b5a8f66']}}).sort({createdAt: 1});
+    return this.find({
+    _id
+  });
+  } catch (error) {
+    throw error;
+  }
+}
+chatMessageSchema.statics.getUndeliveredMessagesByRoomId = async function (chatRoomId, userId, options = {}) {
+  try {
+    return this.find({ 'readByRecipients.readByUserId': { $nin: ['fd8445e7b3cc4e3098b29d476b5a8f66'] } }).sort({ createdAt: 1 });
   } catch (error) {
     throw error;
   }
@@ -133,16 +161,16 @@ chatMessageSchema.statics.markMessageRead = async function (chatRoomId, currentU
   try {
     return this.updateMany(
       {
-       chatRoomId,
+        chatRoomId,
         $or: [
-          {   'readByRecipients.readByUserId': { $ne: currentUserOnlineId } },
-          { 'readByRecipients.status':  { $eq: 'delivered' } },
+          { 'readByRecipients.readByUserId': { $ne: currentUserOnlineId } },
+          { 'readByRecipients.status': { $eq: 'delivered' } },
         ],
-      
+
       },
       {
         $set: {
-          readByRecipients: { readByUserId: currentUserOnlineId,status:"read" }
+          readByRecipients: { readByUserId: currentUserOnlineId, status: "read" }
         }
       },
       {
@@ -162,7 +190,7 @@ chatMessageSchema.statics.markMessageDelivered = async function (chatRoomId, cur
       },
       {
         $addToSet: {
-          readByRecipients: { readByUserId: currentUserOnlineId,status:"delivered" }
+          readByRecipients: { readByUserId: currentUserOnlineId, status: "delivered" }
         }
       },
       {
@@ -175,14 +203,15 @@ chatMessageSchema.statics.markMessageDelivered = async function (chatRoomId, cur
 }
 chatMessageSchema.statics.markSingleMessageRead = async function (messageId, currentUserOnlineId) {
   try {
-    return this.update( 
-  
-      { _id: messageId, 
+    return this.update(
+
+      {
+        _id: messageId,
         'readByRecipients.readByUserId': { $ne: currentUserOnlineId }
       },
       {
         $addToSet: {
-          readByRecipients: { readByUserId: currentUserOnlineId,status:"read" }
+          readByRecipients: { readByUserId: currentUserOnlineId, status: "read" }
         }
       },
     );
@@ -192,14 +221,15 @@ chatMessageSchema.statics.markSingleMessageRead = async function (messageId, cur
 }
 chatMessageSchema.statics.markSingleMessageDelivered = async function (messageId, currentUserOnlineId) {
   try {
-    return this.update( 
-  
-      { _id: messageId, 
+    return this.update(
+
+      {
+        _id: messageId,
         'readByRecipients.readByUserId': { $ne: currentUserOnlineId }
       },
       {
         $addToSet: {
-          readByRecipients: { readByUserId: currentUserOnlineId,status:"delivered" }
+          readByRecipients: { readByUserId: currentUserOnlineId, status: "delivered" }
         }
       },
     );
@@ -229,7 +259,7 @@ chatMessageSchema.statics.getRecentConversation = async function (chatRoomIds, o
       //     readByRecipients: { $last: '$readByRecipients' },
       //   }
       // },
-      
+
       // { $sort: { createdAt: -1 } },
       // // do a join on another table called users, and 
       // // get me a user whose _id = postedByUser

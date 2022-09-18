@@ -56,7 +56,7 @@ chatRoomSchema.statics.initiateChat = async function (userIds, chatInitiator) {
       },
     });
     if (chatroom) {
-      return  chatroom;
+      return chatroom;
       return {
         isNew: false,
         message: 'retrieving an old chat room',
@@ -69,7 +69,7 @@ chatRoomSchema.statics.initiateChat = async function (userIds, chatInitiator) {
     return {
       isNew: true,
       message: 'creating a new chatroom',
-      chatroom : newRoom
+      chatroom: newRoom
     };
   } catch (error) {
     console.log('error on start chat method', error);
@@ -93,30 +93,34 @@ chatRoomSchema.statics.getRecentConversation = async function (chatRoomIds, opti
               $sort: {
                 createdAt: -1
               }
-            },  { $unset: "__v" },
-            {   
+            }, { $unset: "__v" },
+            {
               $match: {
-                  'readByRecipients.readByUserId': {$nin: [currentUserOnlineId]}
-                     }
+                'readByRecipients.readByUserId': { $nin: [currentUserOnlineId] },
+             
+              }
             }
           ],
           as: 'messages',
         },
       },
-      { $project: { 
-        messages:"$messages",
-        userIds:"$userIds",
-        chatInitiator:"$chatInitiator",
-        createdAt:"$createdAt",
-        updatedAt:"$updatedAt",
-        moreThanFive: { $gt: [ {$size: "$messages" }, 0 ] } } },
-        
-          
-        
-      
-        { $match: { moreThanFive : true }} ,
-        { $unset: "moreThanFive" },
-     
+      {
+        $project: {
+          messages: "$messages",
+          userIds: "$userIds",
+          chatInitiator: "$chatInitiator",
+          createdAt: "$createdAt",
+          updatedAt: "$updatedAt",
+          moreThanFive: { $gt: [{ $size: "$messages" }, 0] }
+        }
+      },
+
+
+
+
+      { $match: { moreThanFive: true } },
+      { $unset: "moreThanFive" },
+
       // {
       //   $group: {
       //     _id: '$chatRoomId',
@@ -129,7 +133,7 @@ chatRoomSchema.statics.getRecentConversation = async function (chatRoomIds, opti
       //     readByRecipients: { $last: '$readByRecipients' },
       //   }
       // },
-      
+
       // { $sort: { createdAt: -1 } },
       // // do a join on another table called users, and 
       // // get me a user whose _id = postedByUser
