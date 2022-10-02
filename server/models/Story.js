@@ -129,7 +129,6 @@ storySchema.statics.getUserStories = async function (userId) {
     var s = new Date(); // today!
     var x = 1; // go back 5 days!
     d.setDate(d.getDate() - x);
-    console.log(d);
     try {
         return this.aggregate([
             { $match: { userId: userId } },
@@ -148,8 +147,6 @@ storySchema.statics.getUserStories = async function (userId) {
                 $project: {
 
                     _id: "$_id",
-                    userId: "$userId",
-                    images: "$images",
                     stories: "$stories",
                     moreThanFive: { $gt: [{ $size: "$images" }, 0] },
                     storiesMoreThanOne: { $gt: [{ $size: "$stories" }, 0] }

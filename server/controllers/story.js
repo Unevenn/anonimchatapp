@@ -11,7 +11,7 @@ export default {
         } catch (error) {
             return res.status(500).json({ success: false, error: error })
         }
-    },    getUserStories: async (req, res) => {
+    }, getUserStories: async (req, res) => {
         try {
             var userId = req.userId;
             const stories = await StoryModel.getUserStories(userId)
@@ -25,10 +25,10 @@ export default {
         try {
             var userId = req.userId;
             console.log(userId);
-     
+
             var storyId = req.params.storyId;
             console.log(storyId);
-            const stories = await StoryImages.markSee(userId,storyId)
+            const stories = await StoryImages.markSee(userId, storyId)
 
             return res.status(200).json({ success: true, stories });
         } catch (error) {
@@ -45,17 +45,17 @@ export default {
             }));
             if (!validation.success) return res.status(400).json({ ...validation });
             const { fileType } = req.body;
-                
-            if(req.file){
+
+            if (req.file) {
                 var img = req.file.path
                 var userId = req.userId;
                 const storyImage = await StoryImages.createStoryImage(img, fileType);
                 await StoryModel.createStory(userId, storyImage._id);
-                return res.status(200).json({ success: true,});
-            }else{
-                return res.status(200).json({ success: false,"error":"No File"});
+                return res.status(200).json({ success: true, });
+            } else {
+                return res.status(200).json({ success: false, "error": "No File" });
             }
-       
+
         } catch (error) {
             return res.status(500).json({ success: false, error: error })
         }
