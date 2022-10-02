@@ -45,7 +45,7 @@ export default {
             }));
             if (!validation.success) return res.status(400).json({ ...validation });
             const { fileType } = req.body;
-
+console.log(req.file)
             if (req.file) {
                 var img = req.file.path
                 var userId = req.userId;

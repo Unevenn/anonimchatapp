@@ -313,14 +313,16 @@ export default {
         }
       }));
       if (!validation.success) return res.status(400).json(validation);
-      const { relationship, about, gender, birthday, job } = req.body;
-      var imagesPaths = []
+      const { relationship, about, gender, birthday, job,images } = req.body;
+      console.log(images)
+      var myImages = images.split(','); // split string on comma space
+      console.log(myImages)
       for (var i = 0; i < req.files.length; i++) {
-        console.log(req.files[i])
-        imagesPaths.push(req.files[i].path)
+        myImages.push(req.files[i].path)
       }
       const userId = req.userId;
-      const user = await UserModel.updateProfile(userId, imagesPaths, relationship, about, birthday, job, gender);
+      console.log(myImages)
+      const user = await UserModel.updateProfile(userId, myImages, relationship, about, birthday, job, gender);
       var editedUser = user.toObject()
       editedUser.gifts = user.gifts.length;
       editedUser.interactions = user.interactions.length;
