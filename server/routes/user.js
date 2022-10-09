@@ -14,6 +14,7 @@ router
   .post('/updateProfile',decode, upload.array('files',5), user.updateProfile)
   .post('/sendGift',decode, user.sendGift)
   .post('/purchaseStar',decode, user.purchaseStar)
+  .post('/updatePremium',decode, user.updatePremium)
   .post('/convertGift',decode, user.convertGift)
   .post('/deletePhoto',decode, user.deletePhoto)
   .post('/login', user.login)

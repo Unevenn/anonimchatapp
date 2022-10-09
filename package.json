@@ -8,10 +8,11 @@
     "start:server": "node server/index.js"
   },
   "dependencies": {
+    "@adminjs/bundler": "^2.0.0",
     "@adminjs/express": "^5.0.0",
     "@adminjs/mongoose": "^3.0.0",
     "@withvoid/make-validation": "1.0.5",
-    "adminjs": "^6.2.3",
+    "adminjs": "^6.2.4",
     "bcryptjs": "^2.4.3",
     "cjs-to-es6": "^2.0.1",
     "cors": "2.8.5",

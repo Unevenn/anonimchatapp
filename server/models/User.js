@@ -96,9 +96,9 @@ const userSchema = new mongoose.Schema(
  * @param {String} lastName
  * @returns {Object} new user object created
  */
-userSchema.statics.createUser = async function (deviceId,name, email, password, pushToken, about, gender, relationship, job, birthday, location,googleSignAccount,image) {
+userSchema.statics.createUser = async function (deviceId, name, email, password, pushToken, about, gender, relationship, job, birthday, location, googleSignAccount, image) {
   try {
-    const user = await this.create({deviceId, name, email, password, pushToken, about, gender, relationship, job, birthday, location,googleSignAccount,image });
+    const user = await this.create({ deviceId, name, email, password, pushToken, about, gender, relationship, job, birthday, location, googleSignAccount, image });
     return user;
   } catch (error) {
     throw error;
@@ -110,6 +110,10 @@ userSchema.statics.createUser = async function (deviceId,name, email, password, 
  * @return {Object} User profile object
  */
 userSchema.statics.getUserById = async function (id) {
+  var y = new Date(); // yesterday!]
+  var t = new Date(); // today!
+  var x = 1; // go back 1 days!
+  y.setDate(t.getDate() - x);
   try {
 
     const user = this.aggregate([
@@ -118,7 +122,21 @@ userSchema.statics.getUserById = async function (id) {
 
       {
         $addFields: {
-          interactions: { $size: "$interactions" },
+          interactions: {
+            $size:
+            {
+              $filter: {
+                input: "$interactions",
+                as: "interaction",
+                cond:
+
+                 { $gte: [ "$$interaction.date", y ] }
+             
+
+              }
+            }
+
+          },
         }
       },])
 
@@ -193,6 +211,22 @@ userSchema.statics.incrementStar = async function (currentLoggedUserID, star) {
       {
         $inc: {
           "star": star
+        },
+      },
+    );
+    if (!user) throw ('No user with this id found');
+    return user;
+  } catch (error) {
+    throw error;
+  }
+}
+
+userSchema.statics.updatePremium = async function (currentLoggedUserID, productId) {
+  try {
+    const user = await this.updateOne({ _id: currentLoggedUserID, },
+      {
+        $set: {
+          "$subscribeStatus": productId
         },
       },
     );
@@ -467,7 +501,6 @@ userSchema.statics.getInteractions = async function (userId) {
   var t = new Date(); // today!
   var x = 1; // go back 1 days!
   y.setDate(t.getDate() - x);
-  console.log(y)
   try {
     return this.aggregate([
       { $match: { _id: userId, "interactions.date": { $gte: y, $lt: t } } },

@@ -1,14 +1,14 @@
 import AdminJS  from 'adminjs'
-import AdminJSExpress  from '@adminjs/express'
 import AdminJSMongoose  from '@adminjs/mongoose'
 import UserAdmin from './user.admin.js';
+import PurchaseAdmin from './purchase.admin.js';
 
 AdminJS.registerAdapter(AdminJSMongoose)
 
 const options={
-    resources:[UserAdmin],
+    resources:[UserAdmin,PurchaseAdmin],
     branding: {
-        companyName: 'OJO',
+        companyName: 'Falloven',
       },
       locale: {
         translations: {

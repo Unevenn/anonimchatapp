@@ -8,6 +8,7 @@ import Bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import schedule from 'node-schedule';
 import ChatMessageModel from "../models/ChatMessage.js"
+import PurchaseModel from "../models/Purchase.js"
 import notification from "../middlewares/send_notification.js";
 import path from 'path';
 import multer from 'multer';
@@ -162,18 +163,18 @@ export default {
       }));
       if (!validation.success) return res.status(400).json({ ...validation });
 
-      const {deviceId,  name, email, password, pushToken, about, gender, relationship, job, birthday, location,googleSignInAccount,googleSignInPhotoUrl } = req.body;
+      const { deviceId, name, email, password, pushToken, about, gender, relationship, job, birthday, location, googleSignInAccount, googleSignInPhotoUrl } = req.body;
       var locationData = JSON.parse(location);
-      var image = [];  
-      
-      if(googleSignInPhotoUrl!=null &&googleSignInPhotoUrl != "undefined"){
+      var image = [];
+
+      if (googleSignInPhotoUrl != null && googleSignInPhotoUrl != "undefined") {
         image.push(googleSignInPhotoUrl)
-      }      
+      }
 
       let bcryptedPassword = Bcrypt.hashSync(password, 10);
       console.log(googleSignInAccount)
       console.log(image)
-      var user = await UserModel.createUser( deviceId, name, email, bcryptedPassword, pushToken, about, gender, relationship, job, birthday, locationData,googleSignInAccount,image);
+      var user = await UserModel.createUser(deviceId, name, email, bcryptedPassword, pushToken, about, gender, relationship, job, birthday, locationData, googleSignInAccount, image);
       console.log(user)
       const payload = {
         userId: user._id,
@@ -247,10 +248,10 @@ export default {
         }
       }));
       if (!validation.success) return res.status(400).json(validation);
-      const { deviceId,email,pushToken } = req.body;
+      const { deviceId, email, pushToken } = req.body;
 
       var newUser = await UserModel.getUserByEmail(email)
- 
+
       var user = newUser[0]
 
       if (user == null) {
@@ -313,7 +314,7 @@ export default {
         }
       }));
       if (!validation.success) return res.status(400).json(validation);
-      const { relationship, about, gender, birthday, job,images } = req.body;
+      const { relationship, about, gender, birthday, job, images } = req.body;
       console.log(images)
       var myImages = images.split(','); // split string on comma space
       console.log(myImages)
@@ -350,10 +351,12 @@ export default {
       if (!validation.success) return res.status(400).json(validation);
       const { productId, purchaseId, } = req.body;
       const currentLoggedUserID = req.userId;
+
       // product Id Check
-      var star = 3000;
+      var star = parseInt(productId.split('_')[0])
       const user = await UserModel.incrementStar(currentLoggedUserID, star)
       if (user.n > 0) {
+        await PurchaseModel.add(currentLoggedUserID, purchaseId, productId)
         return res.status(200).json({
           success: true,
           star
@@ -371,7 +374,40 @@ export default {
         error
       });
     }
-  }, convertGift: async (req, res) => {
+  },
+  updatePremium: async (req, res) => {
+    try {
+      const validation = makeValidation(types => ({
+        payload: req.body,
+        checks: {
+          productId: { type: types.string },
+          purchaseId: { type: types.string },
+        }
+      }));
+      if (!validation.success) return res.status(400).json(validation);
+      const { productId, purchaseId, } = req.body;
+      const currentLoggedUserID = req.userId;
+      // product Id Check
+      const user = await UserModel.updatePremium(currentLoggedUserID, productId)
+      if (user.n > 0) {
+        await PurchaseModel.add(currentLoggedUserID, purchaseId, productId)
+        return res.status(200).json({
+          success: true,
+        });
+      } else {
+        return res.status(200).json({
+          success: false,
+          error: "Error"
+        });
+      }
+
+    } catch (error) {
+      return res.status(500).send({
+        error
+      });
+    }
+  },
+  convertGift: async (req, res) => {
     try {
       const validation = makeValidation(types => ({
         payload: req.body,
@@ -508,3 +544,4 @@ var gifts = [{
   "giftId": 12,
   "star": 3000
 },]
+

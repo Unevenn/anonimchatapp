@@ -1,11 +1,11 @@
 import AdminJS from 'adminjs'
 import UserModel from '../models/User.js';
+import  bundle  from "@adminjs/bundler"
 
 const contentParent = {
     name: 'Kullanıcılar',
     icon: 'View',
 }
-
 const options = {
     properties: {
         password: {
@@ -17,7 +17,6 @@ const options = {
             isVisible: false
         }, image: {
             isVisible: true,
-   
 
         }, id: {
             show: true,
@@ -29,7 +28,6 @@ const options = {
             edit: false,
             filter: false,
         },
-
         about: { type: 'richtext' },
         gender: {
             name: 'Cinsiyet',
